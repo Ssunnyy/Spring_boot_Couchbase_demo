@@ -43,12 +43,24 @@
 			<version>2.4.7</version>
 		</dependency>
 
-		<!--spring data couchbase 配置-->
+		<!--spring data couchbase 配置 https://github.com/spring-projects/spring-boot/tree/master/spring-boot-starters/spring-boot-starter-data-couchbase-->
+		<!--解决报错-->
 		<!--<dependency>-->
 			<!--<groupId>org.springframework.data</groupId>-->
 			<!--<artifactId>spring-data-couchbase</artifactId>-->
 			<!--<version>2.2.6.RELEASE</version>-->
 		<!--</dependency>-->
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-couchbase</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 		<!-- war 部署配置 -->
 		<dependency>
@@ -80,7 +92,19 @@
 			<version>2.4.0</version>
 		</dependency>
 
-		<!-- Add typical dependencies for a web application -->
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<version>2.4</version>
+			<classifier>jdk15</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+		</dependency>
+
+        <!-- Add typical dependencies for a web application -->
 	</dependencies>
 
 	<!-- Package as an executable jar -->
@@ -107,14 +131,14 @@
 		</repository>
 
 		<!--spring data couchbase 配置-->
-		<!--<repository>-->
-		<!--<id>spring-libs-release</id>-->
-		<!--<name>Spring Releases</name>-->
-		<!--<url>https://repo.spring.io/libs-release</url>-->
-		<!--<snapshots>-->
-		<!--<enabled>false</enabled>-->
-		<!--</snapshots>-->
-		<!--</repository>-->
+		<repository>
+			<id>spring-libs-release</id>
+			<name>Spring Releases</name>
+			<url>https://repo.spring.io/libs-release</url>
+			<snapshots>
+			<enabled>false</enabled>
+			</snapshots>
+		</repository>
 
 	</repositories>
 
