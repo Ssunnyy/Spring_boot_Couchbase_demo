@@ -14,6 +14,8 @@ import com.couchbase.client.java.view.Stale;
 import com.couchbase.client.java.view.ViewQuery;
 import com.couchbase.client.java.view.ViewResult;
 import com.nearsen.nearsen.Model.Meeting;
+import com.nearsen.nearsen.Model.UserModel;
+import com.nearsen.nearsen.Repository.UserRepo;
 import com.nearsen.nearsen.Util.DateUtils;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -34,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.couchbase.client.java.query.Select.select;
 import static com.couchbase.client.java.query.dsl.Expression.*;
+import static com.nearsen.nearsen.Config.Constants.HOURS_2;
 import static com.nearsen.nearsen.Util.DateUtils.getCurWeekLastDayLastTs;
 import static com.nearsen.nearsen.Util.DateUtils.getPreWeekLastDayLastTs;
 
@@ -53,6 +56,10 @@ public class MeetingController {
     @Autowired
     private Bucket globalBucket;
 
+    @Autowired
+    private UserRepo userRepo;
+
+
 //
 //
 //    @Autowired
@@ -68,11 +75,16 @@ public class MeetingController {
     @ResponseBody
     @RequestMapping(value = "/login",method = RequestMethod.GET)
     @ApiOperation(nickname = "login",value = "用户登陆",notes = "Get 方式用户登陆")
-    public Meeting login (HttpServletRequest request, HttpServletResponse response,
+    public UserModel login (HttpServletRequest request, HttpServletResponse response,
                             @ApiParam(value = "用户名") @RequestParam String name,
                             @ApiParam(value = "密码") @RequestParam String password) {
-        return new Meeting(counter.incrementAndGet(),
-                String.format(templateString, name));
+
+        UserModel userModel = userRepo.getUserModelByUserNameAndUserPassword(name,password);
+        if (userModel == null){
+            userModel = new  UserModel(String.valueOf(counter.incrementAndGet()),name,password);
+            userRepo.save(userModel);
+        }
+        return userModel;
     }
 
 
@@ -251,6 +263,44 @@ public class MeetingController {
             return true;
         }
         return false;
+    }
+
+    @RequestMapping(value = "v2/meeting/ongoingmeeting", method = RequestMethod.POST)
+    public ResponseEntity<JSONObject> getOngogingMeeting(@RequestBody String jsonstr) throws Exception {
+
+        String retcode = "1";
+        String returnmsg = "还未结束或者开始的会议";
+        JSONObject result = new JSONObject();
+        JSONObject data = new JSONObject();
+        JSONArray jadata = new JSONArray();
+
+        Long time = System.currentTimeMillis();
+        long starttsendpos = time + HOURS_2;
+        // 下周的投放会议类产品
+        Statement statement = select("type", "startts", "endts", "isdelete", "pubtovip",
+                "meta(t).id AS meetingid", "title"
+        )
+                .from(i(bucketname) + " t")
+                .where(x("type").eq(s("meeting"))
+                        .and(x("pubtovip").eq(true))
+                        .and(x("isdelete").isMissing())
+                        .and(x("endts").gt(s(String.valueOf(time))))
+                )
+                .orderBy(Sort.asc("startts"))
+                .limit(10)
+                ;
+        N1qlQueryResult nresult = globalBucket.query(statement);
+        for (N1qlQueryRow row : nresult) {
+            JsonObject curobj = row.value();
+            jadata.add(curobj.toString());
+        }
+
+        result.put("code", retcode);
+        result.put("message", returnmsg);
+        result.put("timestamp", time.toString());
+        result.put("data", jadata);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 }

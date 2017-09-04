@@ -120,11 +120,13 @@
 	<!-- Add Spring repositories -->
 	<!-- (you don't need this if you are using a .RELEASE version) -->
 	<repositories>
+		<!--If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.-->
 		<repository>
 			<id>spring-snapshots</id>
 			<url>http://repo.spring.io/snapshot</url>
 			<snapshots><enabled>true</enabled></snapshots>
 		</repository>
+
 		<repository>
 			<id>spring-milestones</id>
 			<url>http://repo.spring.io/milestone</url>
@@ -139,6 +141,8 @@
 			<enabled>false</enabled>
 			</snapshots>
 		</repository>
+
+
 
 	</repositories>
 
