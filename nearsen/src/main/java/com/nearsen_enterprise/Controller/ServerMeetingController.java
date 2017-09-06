@@ -17,8 +17,6 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +28,6 @@ import static com.couchbase.client.java.query.Select.select;
 import static com.couchbase.client.java.query.dsl.Expression.s;
 import static com.couchbase.client.java.query.dsl.Expression.x;
 
-//import static Constants.VERSION_KEY;
 
 @RestController
 @RequestMapping("/api")
@@ -42,7 +39,7 @@ public class ServerMeetingController {
     private int currecordindex;
 
     @Autowired
-    Bucket userBucket;
+    Bucket meetingBucket;
     @Autowired
     private Bucket couchbaseBucket;
 
@@ -52,7 +49,7 @@ public class ServerMeetingController {
 //    @Autowired
 //    private StringRedisTemplate stringRedisTemplate;
     @ResponseBody
-    @RequestMapping(value = "v2/meeting/createseleted", method = RequestMethod.POST)
+    @RequestMapping(value = ConstantsMeetingInterface.meeting_select_endpoint, method = RequestMethod.POST)
     @ApiOperation(nickname = "createSelected",value = "创建会议",notes = "使用POST方式")
     public ResponseEntity<JSONObject> createSelected(
             @RequestBody String jsonstr) throws Exception {
@@ -68,11 +65,11 @@ public class ServerMeetingController {
 
         String docid = "meeting:" + MD5.md5(obj.getString("title").trim());
         if (!obj.getBoolean("isselected")) {
-            JsonDocument jd = couchbaseBucket.get(docid);
+            JsonDocument jd = meetingBucket.get(docid);
             if (null != jd) {
                 JsonObject jo = jd.content();
                 jo.put("isselected", obj.getBoolean("isselected"));
-                couchbaseBucket.upsert(JsonDocument.create(docid, jo));
+                meetingBucket.upsert(JsonDocument.create(docid, jo));
             }
         } else {
             // create meeting
@@ -94,7 +91,7 @@ public class ServerMeetingController {
                     .put("tagliststr", obj.getString("tagliststr"))
 
                     ;
-            couchbaseBucket.upsert(JsonDocument.create(docid, meeting));
+            meetingBucket.upsert(JsonDocument.create(docid, meeting));
         }
 
         result.put("code", retcode);
@@ -142,13 +139,13 @@ public class ServerMeetingController {
         Statement statement = select("title", "tsstart", "tsend", "location",
                 "time", "persons", "owner", "isselected", "meta(t).id", "detailpageurl",
                 "memo", "tagliststr","longi","lati")
-                .from(Expression.i(ConstantsMeetingInterface.bucketname) + " t")
+                .from(Expression.i(ConstantsMeetingInterface.meetingBucket) + " t")
                 .where(x("type").eq(s("meeting"))
                         .and(x("tsstart").gt(startts))
                         .and(x("tsstart").lt(endts)))
                 .orderBy(Sort.asc("tsstart"));
 
-        nresult = couchbaseBucket.query(statement);
+        nresult = meetingBucket.query(statement);
 
 
         for (N1qlQueryRow row : nresult) {
@@ -167,7 +164,7 @@ public class ServerMeetingController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "v2/meeting/pubtovip", method = RequestMethod.POST)
+    @RequestMapping(value = ConstantsMeetingInterface.meeting_tovip_endpoint, method = RequestMethod.POST)
     @ApiOperation(nickname = "pubToVip",value = "会议投放/取消",notes = "使用POST方式")
     public ResponseEntity<JSONObject> pubToVip(
             @RequestBody String jsonstr) throws Exception {
@@ -210,7 +207,7 @@ public class ServerMeetingController {
 
 
     @ResponseBody
-    @RequestMapping(value = "v2/meeting/checkloction", method = RequestMethod.POST)
+    @RequestMapping(value = ConstantsMeetingInterface.meeting_checkloction_endpoint, method = RequestMethod.POST)
     @ApiOperation(nickname = "checkloction",value = "更新会议举办地址",notes = "使用POST方式")
     public ResponseEntity<JSONObject> checkloction(
             @ApiParam(name = "meetingId",value = "会议Id",required = true) @RequestParam String meetingId,
@@ -223,13 +220,13 @@ public class ServerMeetingController {
         JSONObject data = new JSONObject();
         Long time = System.currentTimeMillis();
 
-        JsonDocument jd = couchbaseBucket.get(meetingId);
+        JsonDocument jd = meetingBucket.get(meetingId);
         if (null != jd) {
             JsonObject jo = jd.content();
             if (null != latitude && null != longitude){
                 jo.put("lati", latitude);
                 jo.put("longi", longitude);
-                couchbaseBucket.upsert(JsonDocument.create(meetingId, jo));
+                meetingBucket.upsert(JsonDocument.create(meetingId, jo));
             }
         }
 
@@ -251,7 +248,7 @@ public class ServerMeetingController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "v1/selectmeeting/ver", method = RequestMethod.POST)
+    @RequestMapping(value = ConstantsMeetingInterface.meeting_version_endpoint, method = RequestMethod.POST)
     @ApiOperation(nickname = "selectmeetingversion",value = "软件版本信息",notes = "使用POST方式")
     public ResponseEntity<JSONObject> selectmeetingversion() throws Exception {
 
@@ -267,20 +264,5 @@ public class ServerMeetingController {
         result.put("data", sysinfo.toString());
 
         return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    private String getStatus(JsonObject curcardobj) {
-        String status;
-        if (null == curcardobj.getBoolean("isselected")) {
-            status = " ";
-        } else {
-            if (curcardobj.getBoolean("isselected")) {
-                status = "+";
-            } else {
-                status = "-";
-            }
-        }
-
-        return status;
     }
 }
