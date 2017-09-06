@@ -1,4 +1,4 @@
-package com.nearsen.nearsen.Config;
+package com.nearsen_enterprise.Config;
 
 public class Constants {
 

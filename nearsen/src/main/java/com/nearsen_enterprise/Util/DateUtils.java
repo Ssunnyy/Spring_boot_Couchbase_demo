@@ -1,4 +1,4 @@
-package com.nearsen.nearsen.Util;
+package com.nearsen_enterprise.Util;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -118,6 +118,27 @@ public class DateUtils {
         c2.set(Calendar.MINUTE, 59);
         c2.set(Calendar.SECOND, 59);
 //        long millis2 = c2.getTimeInMillis();
+
+        return c2.getTimeInMillis();
+    }
+
+    public static long getCurWeekFstDayStartTs() {
+        long curts = System.currentTimeMillis();
+        Date curdate = new Date(curts);
+
+        Calendar c = Calendar.getInstance();
+        c.setFirstDayOfWeek(Calendar.MONDAY);
+        c.setMinimalDaysInFirstWeek(1);
+        c.setTime(curdate);
+
+        Calendar c2 = Calendar.getInstance();
+        c2.set(Calendar.YEAR, c.get(Calendar.YEAR));
+        c2.set(Calendar.WEEK_OF_YEAR, c.get(Calendar.WEEK_OF_YEAR));
+        c2.setFirstDayOfWeek(Calendar.MONDAY);
+        c2.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY); // Sunday
+        c2.set(Calendar.HOUR_OF_DAY, 0);
+        c2.set(Calendar.MINUTE, 1);
+        c2.set(Calendar.SECOND, 1);
 
         return c2.getTimeInMillis();
     }

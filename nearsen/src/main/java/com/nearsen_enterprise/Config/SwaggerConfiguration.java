@@ -1,4 +1,4 @@
-package com.nearsen.nearsen.Config;
+package com.nearsen_enterprise.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

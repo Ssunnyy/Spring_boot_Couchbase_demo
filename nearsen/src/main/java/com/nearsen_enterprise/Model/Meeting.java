@@ -1,4 +1,4 @@
-package com.nearsen.nearsen.Model;
+package com.nearsen_enterprise.Model;
 
 public class Meeting {
 

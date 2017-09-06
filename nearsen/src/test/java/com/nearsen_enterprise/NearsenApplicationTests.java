@@ -1,4 +1,4 @@
-package com.nearsen.nearsen;
+package com.nearsen_enterprise;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

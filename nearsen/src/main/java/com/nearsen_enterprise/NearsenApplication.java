@@ -1,4 +1,4 @@
-package com.nearsen.nearsen;
+package com.nearsen_enterprise;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
